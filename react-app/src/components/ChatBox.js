@@ -1,13 +1,27 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import ChatMessage from './ChatMessage';
 
 const ChatBox = () => {
   const [messages, setMessages] = useState([{ message: "Hello, how can I help you?", sender: 'AI' }]);
   const [inputMessage, setInputMessage] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
+  const [threadId, setThreadId] = useState(Date.now().toString()); // Unique thread ID for each chat
   const messageContainerRef = useRef(null);
+  const textareaRef = useRef(null);  // Reference for textarea
 
+  // Auto-grow the textarea as the user types
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto'; // Reset the height
+      const scrollHeight = textareaRef.current.scrollHeight; // Get the scroll height of the content
+      textareaRef.current.style.height = `${Math.min(scrollHeight, 120)}px`; // Set height but limit it to 5 lines (~120px)
+    }
+  }, [inputMessage]);
+
+  // Function to handle sending messages
   const handleSendMessage = async () => {
+    setInputMessage('')
+
     if (!inputMessage.trim()) return;
 
     // Add the user's message
@@ -22,7 +36,7 @@ const ChatBox = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ message: inputMessage }),
+        body: JSON.stringify({ message: inputMessage, thread_id: threadId }), // Include thread_id
       });
 
       const reader = response.body.getReader();
@@ -56,8 +70,21 @@ const ChatBox = () => {
     } finally {
       setIsStreaming(false);
     }
+  };
 
+  // Function to start a new chat
+  const handleNewChat = () => {
+    setMessages([{ message: "Hello, how can I help you?", sender: 'AI' }]);
     setInputMessage('');
+    setThreadId(Date.now().toString()); // Generate a new thread ID for the new chat
+  };
+
+  // Handle Enter key press to send message
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault(); // Prevent new line
+      handleSendMessage();
+    }
   };
 
   return (
@@ -69,14 +96,20 @@ const ChatBox = () => {
       </div>
       <div className="input-box">
         <textarea
+          ref={textareaRef}
           value={inputMessage}
           onChange={(e) => setInputMessage(e.target.value)}
+          onKeyDown={handleKeyPress} // Key down event to send message
           rows={1}
           placeholder="Type a message..."
-          disabled={isStreaming}  // Disable input while streaming
+          disabled={isStreaming}
+          style={{ maxHeight: '120px', overflowY: 'auto' }} // Limit height to ~5 lines
         />
         <button onClick={handleSendMessage} className="send-btn" disabled={isStreaming}>
           Send
+        </button>
+        <button onClick={handleNewChat} className="new-chat-btn">
+          New Chat
         </button>
       </div>
     </div>

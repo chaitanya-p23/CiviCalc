@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import ChatBox from './components/ChatBox';
+import './index.css'; // Importing the new styles
 
 const App = () => {
   const [darkMode, setDarkMode] = useState(false);
@@ -14,12 +14,13 @@ const App = () => {
   }, [darkMode]);
 
   return (
-    <div className={`app ${darkMode ? 'dark' : 'light'}`}>
-      <header>
-        <button onClick={toggleDarkMode} className="mode-toggle">
-          {darkMode ? 'Light Mode' : 'Dark Mode'}
-        </button>
-        <button className="new-chat">+</button>
+    <div className={`app-container ${darkMode ? 'dark' : 'light'}`}>
+      <header className="app-header">
+        <div className="header-buttons">
+          <button onClick={toggleDarkMode} className="mode-toggle">
+            {darkMode ? 'Light Mode' : 'Dark Mode'}
+          </button>
+        </div>
       </header>
       <ChatBox />
     </div>
