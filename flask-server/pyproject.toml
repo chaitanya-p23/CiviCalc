@@ -1,9 +1,11 @@
 [tool.poetry]
-name = "civicalcbackend"
+name = "flask-server"
 version = "0.1.0"
 description = ""
 authors = ["Chaitanya Patil <chaitanyapatil2005@gmail.com>"]
-readme = "README.md"
+
+[[tool.poetry.packages]]
+include = "app.py"
 
 [tool.poetry.dependencies]
 python = "^3.12"
