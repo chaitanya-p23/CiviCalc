@@ -26,6 +26,7 @@
 
 2. **For Linux/macOS**:
    ```
+   chmod +x ./run.sh
    ./run.sh
    ```
 
