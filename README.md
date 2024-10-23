@@ -8,13 +8,13 @@
 - Perform complex engineering calculations.
 - Real-time AI responses for instant feedback.
 - Modern, aesthetic UI with dark-light mode toggle.
-- Cross-platform support with scripts for Linux and Windows.
+- Automated prerequisites installer and launcher scripts.
+- Cross-platform support with scripts for Linux, MacOS and Windows.
 
 ## Prerequisites
 
-- **Node.js**
-- **npm**
 - **Python**
+- **Node.js**
 
 ## Usage
 
