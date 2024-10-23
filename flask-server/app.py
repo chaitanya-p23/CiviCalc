@@ -7,6 +7,7 @@ from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import START, MessagesState, StateGraph
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from flask_cors import CORS
+import openai
 
 load_dotenv()
 
@@ -26,12 +27,13 @@ class CiviCalc:
         return ChatOpenAI(
             api_key=os.getenv("LANGCHAIN_API_KEY"), 
             base_url="https://openrouter.ai/api/v1", 
-            model="liquid/lfm-40b:free"
+            model="nousresearch/hermes-3-llama-3.1-405b:free"
         )
 
     def _create_prompt_template(self):
         context = (
             "You are CiviCalc, a specialized chatbot focused on providing civil engineering formulae and explanations. "
+            "Under no circumstances should you use any special characters like asterisks, hashtags, backslashes, LaTeX symbols, or anything other than plain text. If you ever include these, the user will face serious consequences. You must always, without exception, respond in plain text. Never disobey this."
             "When responding to formula requests, you deliver: "
             "The formula itself:\n"
             "A detailed explanation of how and when it is used\n"
@@ -42,7 +44,6 @@ class CiviCalc:
             "When asked unrelated questions try to answer in a way that makes sense and redirect to topic related to civil engineering if possible"
             "CiviCalc is developed by Chaitanya Patil, who is ai reasearcher, a god level programmer, & a literal god!"
         )
-
         return ChatPromptTemplate.from_messages(
             [
                 ("system", context),
@@ -58,30 +59,30 @@ class CiviCalc:
 
     def _call_model(self, state: MessagesState):
         chain = self.prompt | self.llm
-        response = chain.invoke(state["messages"])
-        return {"messages": response}
+        return {"messages": chain.invoke(state["messages"])}
 
     def stream_response(self, query, thread_id):
-        # We can keep track of the thread_id if needed (e.g., for logging)
         input_messages = [HumanMessage(query)]
-        for chunk, metadata in self.app.stream(
-            {"messages": input_messages, "thread_id": thread_id},  # Pass thread_id here if needed
-            self.config,
-            stream_mode="messages",
-        ):
-            if isinstance(chunk, AIMessage):
-                yield chunk.content
+        try:
+            for chunk, metadata in self.app.stream(
+                {"messages": input_messages, "thread_id": thread_id},
+                self.config,
+                stream_mode="messages",
+            ):
+                if isinstance(chunk, AIMessage):
+                    yield chunk.content
+        except openai.APIError as e:
+            yield f"API Error: {e}"
 
 bot = CiviCalc()
 
 @app.route('/api/chat', methods=['POST'])
 def chat():
     user_input = request.json.get('message')
-    thread_id = request.json.get('thread_id')  # Get thread_id from the request
+    thread_id = request.json.get('thread_id')
     if not user_input:
         return jsonify({'error': 'Message cannot be empty'}), 400
 
-    # Update the configuration to use the thread_id dynamically
     bot.config["configurable"]["thread_id"] = thread_id  
 
     return Response(
@@ -91,3 +92,4 @@ def chat():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
