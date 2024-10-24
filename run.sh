@@ -1,5 +1,15 @@
 #!/bin/bash
 
+if ! command -v node >/dev/null 2>&1; then
+    echo "Cannot proceed without installing node"
+    exit
+fi
+
+if ! command -v python >/dev/null 2>&1 && ! command -v python3 >/dev/null 2>&1; then
+    echo "Cannot proceed without installing python"
+    exit
+fi
+
 if [ ! -f flask-server/.env ]; then
     read -p "Enter your API key: " API_KEY
     echo "LANGCHAIN_API_KEY=${API_KEY}" > flask-server/.env
