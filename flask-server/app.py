@@ -27,7 +27,7 @@ class CiviCalc:
         return ChatOpenAI(
             api_key=os.getenv("LANGCHAIN_API_KEY"), 
             base_url="https://openrouter.ai/api/v1", 
-            model="nousresearch/hermes-3-llama-3.1-405b:free"
+            model="liquid/lfm-40b:free"
         )
 
     def _create_prompt_template(self):
